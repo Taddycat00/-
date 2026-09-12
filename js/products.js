@@ -321,9 +321,7 @@ export const ProductsModule = {
 
   executeDelete() {
     if (!currentDeleteProductId) return;
-    let products = StorageService.getProducts();
-    products = products.filter(p => p.productId !== currentDeleteProductId);
-    StorageService.saveProducts(products);
+    StorageService.deleteProduct(currentDeleteProductId);
 
     showToast(`產品代碼 ${currentDeleteProductId} 已安全刪除`, 'info');
     currentDeleteProductId = null;

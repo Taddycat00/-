@@ -2,5 +2,7 @@
   "name": "報價單管理系統",
   "description": "基於 Bootstrap 5 與原生 JavaScript 開發的報價單管理系統，支援客戶、廠商、產品與報價單管理及動態統計資訊。",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

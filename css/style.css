@@ -216,3 +216,13 @@ html, body {
     display: none; /* 隱藏桌機版側欄，改用 Bootstrap Offcanvas */
   }
 }
+
+/* 同步圖示旋轉動畫 */
+.spin-animation {
+  animation: app-spin 0.8s linear infinite;
+}
+
+@keyframes app-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

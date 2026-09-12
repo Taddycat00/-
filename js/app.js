@@ -21,6 +21,7 @@ import { CustomersModule } from './customers.js';
 import { VendorsModule } from './vendors.js';
 import { ProductsModule } from './products.js';
 import { QuotesModule } from './quotes.js';
+import { PostgresService } from './postgres-service.js';
 
 const VIEW_CONFIG = {
   dashboard: { title: '系統總覽 (Dashboard)', breadcrumb: 'Dashboard' },
@@ -48,11 +49,128 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshDashboard();
   initSystemTime();
 
-  // 5. 監聽全域資料變更事件，動態刷新 Dashboard
+  // 5. 初始化 PostgreSQL 資料庫連線與雙向同步
+  initPostgresSync();
+
+  // 6. 監聽全域資料變更事件，動態刷新 Dashboard
   window.addEventListener('data-updated', () => {
     refreshDashboard();
   });
 });
+
+/**
+ * 初始化 PostgreSQL 資料庫同步與介面狀態標籤
+ */
+function initPostgresSync() {
+  const badgeEl = document.getElementById('cloud-sync-badge');
+  const iconEl = document.getElementById('cloud-status-icon');
+  const textEl = document.getElementById('cloud-status-text');
+  const btnSync = document.getElementById('btn-sync-cloud');
+  const syncIcon = document.getElementById('sync-icon');
+
+  // Modal 元素
+  const modalBox = document.getElementById('db-modal-status-box');
+  const modalTitle = document.getElementById('db-modal-title');
+  const modalDesc = document.getElementById('db-modal-desc');
+  const modalIconWrap = document.getElementById('db-modal-icon-wrap');
+  const modalStatusIcon = document.getElementById('db-modal-status-icon');
+  const btnTestConn = document.getElementById('btn-db-test-conn');
+
+  PostgresService.onStatusChange((connected, configured, message) => {
+    if (badgeEl) {
+      if (connected) {
+        badgeEl.className = 'badge bg-success-subtle text-success border border-success-subtle px-2 px-sm-3 py-2 d-inline-flex align-items-center gap-1 fw-normal';
+        if (iconEl) iconEl.className = 'bi bi-database-fill-check text-success';
+        if (textEl) textEl.textContent = 'PostgreSQL 已連線';
+        badgeEl.setAttribute('title', 'PostgreSQL 雲端資料庫已連線 (雙向同步中)');
+      } else {
+        badgeEl.className = 'badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 px-sm-3 py-2 d-inline-flex align-items-center gap-1 fw-normal';
+        if (iconEl) iconEl.className = 'bi bi-database text-secondary';
+        if (textEl) textEl.textContent = configured ? 'PostgreSQL 離線' : '本地離線模式';
+        badgeEl.setAttribute('title', message || '目前使用本機 LocalStorage 儲存');
+      }
+    }
+
+    if (modalTitle && modalDesc) {
+      if (connected) {
+        modalTitle.textContent = 'PostgreSQL 資料庫已連線';
+        modalTitle.className = 'fw-bold mb-1 text-success';
+        modalDesc.textContent = message || '雲端資料庫連線良好，支援資料即時寫入與同步';
+        if (modalIconWrap) modalIconWrap.className = 'rounded-circle p-3 d-flex align-items-center justify-content-center bg-success-subtle';
+        if (modalStatusIcon) modalStatusIcon.className = 'bi bi-database-fill-check text-success fs-4';
+        if (modalBox) modalBox.className = 'p-3 rounded-3 mb-4 border border-success-subtle bg-success-subtle bg-opacity-10 d-flex align-items-center justify-content-between';
+      } else {
+        modalTitle.textContent = configured ? 'PostgreSQL 連線失敗 / 離線' : '本地離線模式 (尚未設定 PostgreSQL)';
+        modalTitle.className = 'fw-bold mb-1 text-secondary';
+        modalDesc.textContent = message || '目前所有資料均安全儲存於本機瀏覽器 LocalStorage';
+        if (modalIconWrap) modalIconWrap.className = 'rounded-circle p-3 d-flex align-items-center justify-content-center bg-secondary-subtle';
+        if (modalStatusIcon) modalStatusIcon.className = 'bi bi-database-slash text-secondary fs-4';
+        if (modalBox) modalBox.className = 'p-3 rounded-3 mb-4 border d-flex align-items-center justify-content-between';
+      }
+    }
+  });
+
+  if (btnTestConn) {
+    btnTestConn.addEventListener('click', async () => {
+      btnTestConn.disabled = true;
+      btnTestConn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>測試中...';
+      try {
+        await PostgresService.checkStatus();
+        const status = PostgresService.getStatus();
+        if (window.showAppToast) {
+          window.showAppToast(status.statusMessage, status.isConnected ? 'success' : 'info');
+        }
+      } catch (err) {
+        if (window.showAppToast) {
+          window.showAppToast('測試連線失敗', 'warning');
+        }
+      } finally {
+        btnTestConn.disabled = false;
+        btnTestConn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>重新測試';
+      }
+    });
+  }
+
+  if (btnSync) {
+    btnSync.addEventListener('click', async () => {
+      if (syncIcon) syncIcon.classList.add('spin-animation');
+      try {
+        await PostgresService.checkStatus();
+        await PostgresService.syncAll(() => {
+          refreshDashboard();
+          CustomersModule.renderList();
+          VendorsModule.renderList();
+          ProductsModule.renderList();
+          QuotesModule.renderList();
+        });
+        const status = PostgresService.getStatus();
+        if (window.showAppToast) {
+          if (status.isConnected) {
+            window.showAppToast('PostgreSQL 資料庫雙向同步完成！', 'success');
+          } else {
+            window.showAppToast(status.statusMessage || '目前為本機離線模式，資料已完整保存在本機', 'info');
+          }
+        }
+      } catch (err) {
+        console.error('手動同步失敗:', err);
+        if (window.showAppToast) {
+          window.showAppToast('同步發生異常，請稍候再試', 'warning');
+        }
+      } finally {
+        if (syncIcon) syncIcon.classList.remove('spin-animation');
+      }
+    });
+  }
+
+  // 啟動 PostgreSQL 狀態檢查與初次同步
+  PostgresService.init(() => {
+    refreshDashboard();
+    CustomersModule.renderList();
+    VendorsModule.renderList();
+    ProductsModule.renderList();
+    QuotesModule.renderList();
+  });
+}
 
 /**
  * 導覽切換與路由監聽

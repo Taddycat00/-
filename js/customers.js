@@ -303,9 +303,7 @@ export const CustomersModule = {
    */
   executeDelete() {
     if (!currentDeleteCustomerId) return;
-    let customers = StorageService.getCustomers();
-    customers = customers.filter(c => c.customerId !== currentDeleteCustomerId);
-    StorageService.saveCustomers(customers);
+    StorageService.deleteCustomer(currentDeleteCustomerId);
 
     showToast(`客戶代碼 ${currentDeleteCustomerId} 已安全刪除`, 'info');
     currentDeleteCustomerId = null;

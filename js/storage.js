@@ -6,6 +6,8 @@
  * 3. 初次載入時自動寫入示範初始資料，讓使用者立即可操作與驗證
  */
 
+import { PostgresService } from './postgres-service.js';
+
 const STORAGE_KEYS = {
   CUSTOMERS: 'quote_sys_customers',
   VENDORS: 'quote_sys_vendors',
@@ -219,12 +221,68 @@ export const StorageService = {
   getQuotes() { return this.get(STORAGE_KEYS.QUOTES); },
 
   /**
-   * 儲存各模組清單捷徑
+   * 儲存各模組清單捷徑 (同步至 LocalStorage 與 PostgreSQL 雲端資料庫)
    */
-  saveCustomers(data) { this.save(STORAGE_KEYS.CUSTOMERS, data); },
-  saveVendors(data) { this.save(STORAGE_KEYS.VENDORS, data); },
-  saveProducts(data) { this.save(STORAGE_KEYS.PRODUCTS, data); },
-  saveQuotes(data) { this.save(STORAGE_KEYS.QUOTES, data); },
+  saveCustomers(data) { 
+    this.save(STORAGE_KEYS.CUSTOMERS, data);
+    if (Array.isArray(data)) {
+      data.forEach(item => {
+        if (item && item.customerId) PostgresService.saveCustomer(item);
+      });
+    }
+  },
+  saveVendors(data) { 
+    this.save(STORAGE_KEYS.VENDORS, data);
+    if (Array.isArray(data)) {
+      data.forEach(item => {
+        if (item && item.vendorId) PostgresService.saveVendor(item);
+      });
+    }
+  },
+  saveProducts(data) { 
+    this.save(STORAGE_KEYS.PRODUCTS, data);
+    if (Array.isArray(data)) {
+      data.forEach(item => {
+        if (item && item.productId) PostgresService.saveProduct(item);
+      });
+    }
+  },
+  saveQuotes(data) { 
+    this.save(STORAGE_KEYS.QUOTES, data);
+    if (Array.isArray(data)) {
+      data.forEach(item => {
+        if (item && item.quoteId) PostgresService.saveQuote(item);
+      });
+    }
+  },
+
+  /**
+   * 刪除指定實體 (同時清除 LocalStorage 與 PostgreSQL 雲端資料)
+   */
+  deleteCustomer(id) {
+    const list = this.getCustomers().filter(c => c.customerId !== id);
+    this.save(STORAGE_KEYS.CUSTOMERS, list);
+    PostgresService.deleteCustomer(id);
+    return list;
+  },
+  deleteVendor(id) {
+    const list = this.getVendors().filter(v => v.vendorId !== id);
+    this.save(STORAGE_KEYS.VENDORS, list);
+    PostgresService.deleteVendor(id);
+    return list;
+  },
+  deleteProduct(id) {
+    const list = this.getProducts().filter(p => p.productId !== id);
+    this.save(STORAGE_KEYS.PRODUCTS, list);
+    PostgresService.deleteProduct(id);
+    return list;
+  },
+  deleteQuote(id) {
+    const list = this.getQuotes().filter(q => q.quoteId !== id);
+    this.save(STORAGE_KEYS.QUOTES, list);
+    PostgresService.deleteQuote(id);
+    return list;
+  },
 
   /**
    * 依照規則十一產生唯一不重複代碼

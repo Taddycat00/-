@@ -608,9 +608,7 @@ export const QuotesModule = {
 
   executeDelete() {
     if (!currentDeleteQuoteId) return;
-    let quotes = StorageService.getQuotes();
-    quotes = quotes.filter(q => q.quoteId !== currentDeleteQuoteId);
-    StorageService.saveQuotes(quotes);
+    StorageService.deleteQuote(currentDeleteQuoteId);
 
     showToast(`報價單號 ${currentDeleteQuoteId} 已安全刪除`, 'info');
     currentDeleteQuoteId = null;

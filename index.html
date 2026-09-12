@@ -48,7 +48,19 @@
 
         <!-- 頂部右側資訊 -->
         <div class="d-flex align-items-center gap-2 gap-md-3">
-          <div class="badge bg-light text-secondary border px-3 py-2 d-none d-sm-inline-flex align-items-center gap-2 fw-normal">
+          <!-- PostgreSQL 資料庫狀態標籤 (點擊可查看連線與設定指引) -->
+          <div class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 px-sm-3 py-2 d-inline-flex align-items-center gap-1 fw-normal" id="cloud-sync-badge" role="button" data-bs-toggle="modal" data-bs-target="#modal-db-info" style="cursor: pointer;" title="點擊查看 PostgreSQL 資料庫連線狀態與說明">
+            <i class="bi bi-database text-secondary" id="cloud-status-icon"></i>
+            <span id="cloud-status-text">PostgreSQL 連線中...</span>
+          </div>
+
+          <!-- 立即手動同步按鈕 -->
+          <button type="button" class="btn btn-sm btn-outline-secondary d-none d-sm-inline-flex align-items-center gap-1" id="btn-sync-cloud" title="立即與 PostgreSQL 資料庫同步">
+            <i class="bi bi-arrow-repeat" id="sync-icon"></i>
+            <span class="d-none d-md-inline">同步</span>
+          </button>
+
+          <div class="badge bg-light text-secondary border px-3 py-2 d-none d-lg-inline-flex align-items-center gap-2 fw-normal">
             <i class="bi bi-calendar3 text-primary"></i>
             <span id="header-current-date">--</span>
           </div>
@@ -1135,6 +1147,57 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-light border" data-bs-dismiss="modal">取消保留</button>
             <button type="button" class="btn btn-danger px-4" id="btn-confirm-delete-quote">確定刪除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PostgreSQL 資料庫狀態與設定說明 Modal -->
+    <div class="modal fade" id="modal-db-info" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-database-fill text-primary"></i>
+              PostgreSQL 雲端資料庫狀態
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <!-- 狀態卡片 -->
+            <div class="p-3 rounded-3 mb-4 border d-flex align-items-center justify-content-between" id="db-modal-status-box">
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-secondary-subtle" id="db-modal-icon-wrap" style="width: 48px; height: 48px;">
+                  <i class="bi bi-database text-secondary fs-4" id="db-modal-status-icon"></i>
+                </div>
+                <div>
+                  <h6 class="fw-bold mb-1" id="db-modal-title">檢查連線中...</h6>
+                  <p class="text-muted small mb-0" id="db-modal-desc">正在讀取伺服器 PostgreSQL 設定</p>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm px-3" id="btn-db-test-conn">
+                <i class="bi bi-arrow-clockwise me-1"></i>重新測試
+              </button>
+            </div>
+
+            <!-- 連線指引說明 -->
+            <div class="card border-0 bg-light-subtle rounded-3 p-3 mb-3">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-info me-2"></i>如何串接您的 Neon 或雲端 PostgreSQL？</h6>
+              <p class="small text-secondary mb-2">
+                本系統後端使用標準 Node.js <code>pg</code> 連線池，支援 **Neon、Supabase、Google Cloud SQL、AWS RDS** 等所有標準 PostgreSQL 資料庫。
+              </p>
+              <div class="bg-dark text-light p-3 rounded-2 small font-monospace mb-2 text-break">
+                # 在專案環境變數設定 DATABASE_URL 即可自動連線並建置資料表：<br>
+                DATABASE_URL="postgresql://username:password@ep-example.neon.tech/neondb?sslmode=require"
+              </div>
+              <ul class="small text-muted ps-3 mb-0">
+                <li>若尚未設定 <code>DATABASE_URL</code>，系統會自動切換為<strong>本機離線模式 (LocalStorage)</strong>，所有功能依然順暢可用。</li>
+                <li>當設定完成並連線時，系統會自動在 PostgreSQL 建立 <code>customers</code>、<code>vendors</code>、<code>products</code> 與 <code>quotes</code> 資料表，並支援雙向自動同步。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">瞭解關閉</button>
           </div>
         </div>
       </div>

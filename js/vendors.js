@@ -268,9 +268,7 @@ export const VendorsModule = {
 
   executeDelete() {
     if (!currentDeleteVendorId) return;
-    let vendors = StorageService.getVendors();
-    vendors = vendors.filter(v => v.vendorId !== currentDeleteVendorId);
-    StorageService.saveVendors(vendors);
+    StorageService.deleteVendor(currentDeleteVendorId);
 
     showToast(`廠商代碼 ${currentDeleteVendorId} 已安全刪除`, 'info');
     currentDeleteVendorId = null;

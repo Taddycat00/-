@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 預設拒絕所有未匹配的路徑
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 驗證連線測試路徑 (符合技能要求)
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // 共通輔助函式
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 客戶驗證
+    function isValidCustomer(data) {
+      return data.customerId is string && data.customerId.size() <= 64 &&
+             data.companyName is string && data.companyName.size() > 0 && data.companyName.size() <= 200;
+    }
+
+    // 廠商驗證
+    function isValidVendor(data) {
+      return data.vendorId is string && data.vendorId.size() <= 64 &&
+             data.companyName is string && data.companyName.size() > 0 && data.companyName.size() <= 200;
+    }
+
+    // 產品驗證
+    function isValidProduct(data) {
+      return data.productId is string && data.productId.size() <= 64 &&
+             data.productName is string && data.productName.size() > 0 && data.productName.size() <= 200 &&
+             data.cost is number && data.cost >= 0 &&
+             data.price is number && data.price >= 0;
+    }
+
+    // 報價單驗證
+    function isValidQuote(data) {
+      return data.quoteId is string && data.quoteId.size() <= 64 &&
+             data.customerId is string && data.customerId.size() <= 64 &&
+             data.quoteDate is string && data.quoteDate.size() <= 20 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.items is list;
+    }
+
+    // 客戶集合
+    match /customers/{customerId} {
+      allow read: if isSignedIn() && isValidId(customerId);
+      allow create, update: if isSignedIn() && isValidId(customerId) && isValidCustomer(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(customerId);
+    }
+
+    // 廠商集合
+    match /vendors/{vendorId} {
+      allow read: if isSignedIn() && isValidId(vendorId);
+      allow create, update: if isSignedIn() && isValidId(vendorId) && isValidVendor(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(vendorId);
+    }
+
+    // 產品集合
+    match /products/{productId} {
+      allow read: if isSignedIn() && isValidId(productId);
+      allow create, update: if isSignedIn() && isValidId(productId) && isValidProduct(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(productId);
+    }
+
+    // 報價單集合
+    match /quotes/{quoteId} {
+      allow read: if isSignedIn() && isValidId(quoteId);
+      allow create, update: if isSignedIn() && isValidId(quoteId) && isValidQuote(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(quoteId);
+    }
+  }
+}
