@@ -1,0 +1,218 @@
+/**
+ * 報價單管理系統 - 自訂樣式表 (CSS Variables & 核心微調)
+ * 遵循原則：優先使用 Bootstrap 5 Utility Classes，僅在必要時補充自定義樣式
+ */
+
+:root {
+  --app-sidebar-width: 250px;
+  --app-header-height: 60px;
+  --app-bg-surface: #f8fafc;
+  --app-sidebar-bg: #ffffff;
+  --app-border-color: #e2e8f0;
+  --app-nav-active-bg: #eef2ff;
+  --app-nav-active-color: #4f46e5;
+  --app-nav-text-color: #475569;
+  --app-nav-hover-bg: #f1f5f9;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--app-bg-surface);
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+#app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 頂部導覽列 */
+.app-navbar {
+  height: var(--app-header-height);
+  border-bottom: 1px solid var(--app-border-color);
+  background-color: #ffffff;
+  z-index: 1020;
+}
+
+/* 主內容區域排版 */
+.app-body {
+  display: flex;
+  flex: 1;
+}
+
+/* 桌機版側邊欄 (Sidebar) - >= 992px 時常駐 */
+.app-sidebar {
+  width: var(--app-sidebar-width);
+  background-color: var(--app-sidebar-bg);
+  border-right: 1px solid var(--app-border-color);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--app-header-height));
+  position: sticky;
+  top: var(--app-header-height);
+  overflow-y: auto;
+}
+
+/* 導覽連結項目樣式 */
+.nav-link-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--app-nav-text-color);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+  margin-bottom: 0.25rem;
+}
+
+.nav-link-custom i {
+  font-size: 1.2rem;
+  width: 1.5rem;
+  text-align: center;
+  transition: transform 0.15s ease-in-out;
+}
+
+.nav-link-custom:hover {
+  background-color: var(--app-nav-hover-bg);
+  color: #0f172a;
+}
+
+.nav-link-custom:hover i {
+  transform: translateX(2px);
+}
+
+.nav-link-custom.active {
+  background-color: var(--app-nav-active-bg);
+  color: var(--app-nav-active-color);
+  font-weight: 600;
+}
+
+.nav-link-custom.active i {
+  color: var(--app-nav-active-color);
+}
+
+/* 主內容區容器 */
+.app-content {
+  flex: 1;
+  min-width: 0; /* 防止 Flex 子項目在文字過長時撐開導致水平溢位 */
+  background-color: var(--app-bg-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 視圖切換區塊樣式 (預設隱藏，帶淡入動畫) */
+.view-section {
+  display: none;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.view-section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 統計卡片細緻化微調 */
+.stat-card {
+  border: 1px solid var(--app-border-color);
+  border-radius: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+/* 表單必填星號標示 */
+.required-star {
+  color: #dc3545;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* 表格優化 */
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  background-color: #f8fafc;
+  color: #475569;
+  border-bottom-width: 1px;
+}
+
+/* 報價單明細列動態新增樣式 */
+.quote-item-row {
+  transition: background-color 0.15s ease;
+}
+
+.quote-item-row:hover {
+  background-color: #f8fafc;
+}
+
+/* 列印專用樣式 (Phase 5 報價單友善列印) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #modal-view-quote,
+  #modal-view-quote * {
+    visibility: visible;
+  }
+  #modal-view-quote {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .modal-header,
+  .modal-footer,
+  .btn-close {
+    display: none !important;
+  }
+  .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.app-footer {
+  border-top: 1px solid var(--app-border-color);
+  background-color: #ffffff;
+  padding: 1rem 0;
+  margin-top: auto;
+}
+
+/* 手機版與平板適應調整 */
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    display: none; /* 隱藏桌機版側欄，改用 Bootstrap Offcanvas */
+  }
+}
